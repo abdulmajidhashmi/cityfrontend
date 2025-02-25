@@ -89,9 +89,7 @@ const onSubmit =async(data)=>{
                         <option value="">Select Job Type</option>
                         <option value="Full time">Full-time</option>
                         <option value="Part time">Part-time</option>
-                        <option value="Contract">Contract</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Internship">Internship</option>
+                        <option value="Remote">Remote</option>
                       </select>
                     </div>
 

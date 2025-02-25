@@ -1,10 +1,10 @@
 'use client';
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
 const Jobs = () => {
-
     const [jobData, setJobData] = useState([]);
+    const [filterJobData, setFilterJobData] = useState([]);
+    const [activeFilter, setActiveFilter] = useState("all");
     const router = useRouter();
 
     function timeAgo(date) {
@@ -35,7 +35,7 @@ const Jobs = () => {
         console.log(process.env.NEXT_PUBLIC_BASE_URL);
 
         try {
-            const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/post/joblimit`, {
+            const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/post/job`, {
 
                 method: 'GET',
                 headers: {
@@ -44,6 +44,7 @@ const Jobs = () => {
             })
             const result = await data.json();
             setJobData(result.data);
+            setFilterJobData(result.data);
             console.log(result.data);
 
         } catch (err) {
@@ -57,18 +58,35 @@ const Jobs = () => {
         getjobs();
 
     }, [])
-function naviagtebutton(){
 
-router.push('/jobs');
-}
+    function filterbutton(event) {
+        const filterType = event.target.name;
+        setActiveFilter(filterType);
+        const filterMap = {
+            full: "Full time",
+            remote: "Remote",
+            part: "Part time",
+        };
 
-function naviagtetojobs(id){
+        const jobType = filterMap[event.target.name];
 
-    router.push(`/jobs/${id}`)
-}
+        if (jobType) {
+            const data = jobData.filter((val) => val.jobType === jobType);
+            setFilterJobData(data);
+        } else if (event.target.name === "all") {
+            setFilterJobData(jobData);
+        }
+
+        console.log(filterJobData);
+
+    }
+
+    function navigatejob(id){
+
+        router.push(`/jobs/${id.toString()}`)
+    }
 
     return (
-
 
         <div id="root">
             <section id="featured-jobs" className="py-20 bg-white">
@@ -83,25 +101,17 @@ function naviagtetojobs(id){
 
 
                     <div className="flex flex-wrap gap-4 mb-8 justify-center animate__animated animate__fadeIn">
-                        <button className="px-6 py-2 rounded-full bg-[#2E4053] text-white hover:bg-[#FF6B35] transition-colors">All
-                            Jobs</button>
-                        <button
-                            className="px-6 py-2 rounded-full border border-[#2E4053] text-[#2E4053] hover:bg-[#2E4053] hover:text-white transition-colors">Full
-                            Time</button>
-                        <button
-                            className="px-6 py-2 rounded-full border border-[#2E4053] text-[#2E4053] hover:bg-[#2E4053] hover:text-white transition-colors">Part
-                            Time</button>
-                        <button
-                            className="px-6 py-2 rounded-full border border-[#2E4053] text-[#2E4053] hover:bg-[#2E4053] hover:text-white transition-colors">Remote</button>
+
+                        {["all", "full", "part", "remote"].map((item) => (
+                            <button name={item} key={item} onClick={filterbutton} className={`px-6 py-2 rounded-full  border-[#2E4053] text-[#2E4053]  hover:text-white transition-colors ${activeFilter === item ? 'bg-[#FF6B35] text-white' : 'border hover:bg-[#2E4053]'}`}>{item === 'all' ? "All Jobs" : item === 'part' ? "Part Time" : item === 'full' ? "Full Time" : "Remote"}</button>
+                        ))}
                     </div>
-
-
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
 
-                        {jobData.map((item, index) => (
+                        {filterJobData.map((item, index) => (
 
-                            <div key={index} onClick={()=>naviagtetojobs(item._id)}
+                            <div key={index} onClick={()=>navigatejob(item._id)}
                                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow animate__animated animate__fadeIn">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -140,16 +150,10 @@ function naviagtetojobs(id){
                         ))}
                     </div>
 
-                    <div className="text-center mt-12">
-                        <button onClick={naviagtebutton}
-                            className="bg-[#2E4053] text-white px-8 py-3 rounded-lg hover:bg-[#FF6B35] transition-colors animate__animated animate__fadeIn">
-                            View All Jobs
-                        </button>
-                    </div>
+
                 </div>
             </section>
         </div>
-
     )
 }
 
