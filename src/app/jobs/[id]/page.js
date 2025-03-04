@@ -1,6 +1,8 @@
 'use client';
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+export const runtime = 'edge';
+
 
 const Viewjob = () => {
     const param = useParams();
