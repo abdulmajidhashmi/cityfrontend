@@ -81,10 +81,15 @@ const Jobs = () => {
 
     }
 
-    function navigatejob(id){
+    function navigatejob(id) {
 
         router.push(`/jobs/${id.toString()}`)
     }
+    const jobColors = {
+        "Full time": "bg-green-100 text-green-600",
+        "Remote": "bg-blue-100 text-blue-600",
+        "Part time": "bg-purple-100 text-purple-600",
+    };
 
     return (
 
@@ -109,16 +114,19 @@ const Jobs = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
 
-                        {filterJobData.map((item, index) => (
+                        {filterJobData.map((item, index) => {
 
-                            <div key={index} onClick={()=>navigatejob(item._id)}
+const colorClasses = jobColors[item.jobType] || "bg-orange-100 text-orange-600";
+return(
+                            <div key={index} onClick={() => navigatejob(item._id)}
                                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow animate__animated animate__fadeIn">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                                         <span className="text-2xl font-bold text-[#2E4053]">{item.companyName.slice(0, 1)}</span>
                                     </div>
-                                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">{item.jobType}</span>
-                                </div>
+                                    <span className={`px-3 py-1 rounded-full text-sm ${colorClasses}`}>
+                    {item.jobType}
+                </span> </div>
                                 <h3 className="text-xl font-bold text-[#2E4053] mb-2">{item.title}</h3>
                                 <p className="text-gray-600 mb-4">{item.companyName}</p>
                                 <div className="flex items-center gap-4 text-gray-500 text-sm mb-6">
@@ -145,9 +153,9 @@ const Jobs = () => {
                                         className="bg-[#FF6B35] text-white px-4 py-2 rounded-lg hover:bg-[#ff8255] transition-colors">Apply
                                         Now</button>
                                 </div>
-                            </div>
+                            </div>)
 
-                        ))}
+                        })}
                     </div>
 
 
