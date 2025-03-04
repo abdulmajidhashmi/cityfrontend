@@ -60,33 +60,48 @@ const Login = () => {
         }
     };
 
+    const [resendDisabled, setResendDisabled] = useState(false);
 
     const sendOtp = async () => {
         if (!phone || phone.length !== 10) {
             alert("Enter a valid 10-digit phone number.");
             return;
         }
-
-        const formattedPhone = `+91${phone}`; // Change country code as needed
-
+    
+        if (resendDisabled) {
+            alert("Please wait before requesting a new OTP.");
+            return;
+        }
+    
+        setResendDisabled(true);
+        setTimeout(() => setResendDisabled(false), 30000); // 30 sec cooldown
+    
+        const formattedPhone = `+91${phone}`;
+    
         try {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-                    size: "invisible",
-                    callback: (response) => {
-                        console.log("ReCAPTCHA verified", response);
-                    },
-                });
+            // Reset ReCAPTCHA before each request
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+                window.recaptchaVerifier = null;
             }
-
+    
+            // Create a new ReCAPTCHA instance
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                size: "invisible",
+                callback: (response) => {
+                    console.log("ReCAPTCHA verified", response);
+                },
+            });
+    
             const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
-
+    
             alert("OTP sent!");
         } catch (error) {
             console.error("OTP error:", error.code, error.message);
             alert(`Error sending OTP: ${error.message}`);
         }
     };
+    
 
     const numberchange = (val) => {
 
