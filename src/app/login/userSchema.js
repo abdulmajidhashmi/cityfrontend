@@ -8,7 +8,7 @@ export const signupSchema = z.object({
   });
 
 export const loginSchema = z.object({
-    number: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits"),
+  number: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits"),
     otp: z.string().length(6, "OTP must be exactly 6 digits")
   });
 

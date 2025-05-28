@@ -84,6 +84,25 @@ const Header = () => {
                                 </button>
                             </div>
                         </div>
+                        <div
+                    className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-white animate__animated animate__fadeIn animate__delay-3s">
+                    <div className="text-center">
+                        <h3 className="text-3xl font-bold mb-2">10K+</h3>
+                        <p className="text-gray-300">Active Jobs</p>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-3xl font-bold mb-2">5K+</h3>
+                        <p className="text-gray-300">Local Ads</p>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-3xl font-bold mb-2">50K+</h3>
+                        <p className="text-gray-300">Users</p>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-3xl font-bold mb-2">1K+</h3>
+                        <p className="text-gray-300">Companies</p>
+                    </div>
+                </div>
                     </div>
                 </div>
             </header>

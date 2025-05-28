@@ -1,66 +1,133 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation"
 import { signupSchema, loginSchema } from './userSchema';
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithCredential, PhoneAuthProvider, getAuth } from "firebase/auth";
 
 import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "../../../firebase";
-
 const Login = () => {
 
     const router = useRouter();
 
-    const { register: loginRegister, handleSubmit: handleLogin, formState: { errors: loginErrors } } = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
-    const { watch, register: signupRegister, handleSubmit: handleSignup, formState: { errors: signupErrors } } = useForm({ resolver: zodResolver(signupSchema), mode: 'all' });
+    const { watch:loginwatch,register: loginRegister, handleSubmit: handleLogin, formState: { errors: loginErrors } } = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
+    const { watch:signupwatch, register: signupRegister, handleSubmit: handleSignup, formState: { errors: signupErrors } } = useForm({ resolver: zodResolver(signupSchema), mode: 'all' });
     const [isToggle, setIsToggle] = useState(false);
-
-    const phone = watch('number');
+    const [verifyId, setVerifyId] = useState('');
+    const [verifyId2, setVerifyId2] = useState('');
+    const phone2 = loginwatch('number')
+    const phone = signupwatch('number');
+    const otp = signupwatch('otp');
+    const otp2 = loginwatch('otp');
     const [num, setNum] = useState('');
     function Toggleit() {
 
         setIsToggle(() => !isToggle);
     }
     const loggedIn = async (data) => {
+
+
+
+        if (!verifyId2 || !otp2) {
+            alert("Please enter the OTP");
+            return;
+        }
+
+        console.log("Entered OTP:", otp);
+
         try {
-            const response = await fetch('/api/login', {
+            const credential = PhoneAuthProvider.credential(verifyId2, otp2);
+            const userCredential = await signInWithCredential(auth, credential);
+            const idToken = await userCredential.user.getIdToken();
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/user/verifyotplogin`, {
                 method: "POST",
-                body: JSON.stringify(data),
+                body: JSON.stringify({ otp2, verifyId2: idToken }), // Sending Firebase ID token
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            console.log(response)
+
+            const data = await response.json();
+console.log(data);
+            if (data.success) {
+                alert("OTP Verified Successfully!");
+            } else {
+                alert(data.message || "Verification failed. Please try again.");
+            }
+            
+           const temp= data.user.phone_number;
+           const actualdata =temp
+            const response2 = await fetch('/api/login', {
+                method: "POST",
+                body:JSON.stringify(phone2),
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
             });
-            const result = await response.json();
-            if (result.result.success === true) {
-
-                router.push('/');
+            const result = await response2.json();
+            console.log(result)
+            if (result?.result?.success === true) {
+             
+                    router.push('/post-ad');
+               
             }
             console.log(result.result.success);
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error("Error verifying OTP:", error);
+            alert(error.message || "Something went wrong. Please try again.");
         }
+
+
+
+
 
     }
 
     const onSubmit = async (data) => {
         try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                console.error("User not authenticated");
+                return;
+            }
+
+            const idToken = await user.getIdToken(); // ✅ This is the actual Firebase ID Token (JWT)
+
+            const dat = { ...data, verifyId: idToken }; // 👈 Replace verifyId with idToken
+            console.log(dat);
+
             const response = await fetch('/api/signup', {
                 method: "POST",
-                body: JSON.stringify(data),
+                body: JSON.stringify(dat),
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
             });
-            const result = await response.json();
-            if (result.result.success === true) {
 
-                router.push('/');
+            const result = await response.json();
+
+
+
+            if (result.result?.success === true) {
+                if (result.result.data.role === 'creator') {
+                    router.push('/post-ad');
+                } else {
+                    router.push('/');
+                }
             }
-            console.log(result.result.success);
+            console.log("result");
         } catch (err) {
             console.error(err);
         }
     };
 
     const [resendDisabled, setResendDisabled] = useState(false);
+
 
     const sendOtp = async () => {
         if (!phone || phone.length !== 10) {
@@ -74,27 +141,14 @@ const Login = () => {
         }
     
         setResendDisabled(true);
-        setTimeout(() => setResendDisabled(false), 30000); // 30 sec cooldown
+        setTimeout(() => setResendDisabled(false), 30000);
     
         const formattedPhone = `+91${phone}`;
     
         try {
-            // Reset ReCAPTCHA before each request
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.clear();
-                window.recaptchaVerifier = null;
-            }
-    
-            // Create a new ReCAPTCHA instance
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-                size: "invisible",
-                callback: (response) => {
-                    console.log("ReCAPTCHA verified", response);
-                },
-            });
-    
-            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
-    
+            const appVerifier = window.recaptchaVerifier;
+            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+            setVerifyId(confirmationResult.verificationId);
             alert("OTP sent!");
         } catch (error) {
             console.error("OTP error:", error.code, error.message);
@@ -102,31 +156,70 @@ const Login = () => {
         }
     };
     
+    useEffect(() => {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                size: "invisible",
+                callback: (response) => {
+                    console.log("ReCAPTCHA verified", response);
+                },
+            });
+        }
+    }, []);
+    
 
-    const numberchange = (val) => {
+    const loginsendOtp = async () => {
+        if (!phone2 || phone2.length !== 10) {
+            alert("Enter a valid 10-digit phone number.");
+            return;
+        }
+    
+        if (resendDisabled) {
+            alert("Please wait before requesting a new OTP.");
+            return;
+        }
+    
+        setResendDisabled(true);
+        setTimeout(() => setResendDisabled(false), 30000);
+    
+        const formattedPhone = `+91${phone2}`;
+    
+        try {
+            const appVerifier = window.recaptchaVerifier;
+            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+            setVerifyId2(confirmationResult.verificationId); 
+            alert("OTP sent!");
+    
+        } catch (error) {
+            console.error("OTP error:", error.code, error.message);
+            alert(`Error sending OTP: ${error.message}`);
+        }
+    };
 
-        console.log(val)
-        if (val.length === 10)
-            setNum(val);
-    }
+
+
+
+
+
     return (
 
         <div id="root">
+        <div id="recaptcha-container"></div>
             <section id="auth" className="bg-neutral-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
 
-                <div id="recaptcha-container"></div>
+
 
                 <div className="max-w-md w-full space-y-8 bg-neutral-800 p-8 rounded-xl shadow-2xl animate__animated animate__fadeIn">
                     {!isToggle ? <div className="text-center">
                         <h2 className="mt-6 text-3xl font-extrabold text-white">
                             Sign in to your account
                         </h2>
-                        <p className="mt-2 text-sm text-neutral-400">
+                        {/* <p className="mt-2 text-sm text-neutral-400">
                             Or&nbsp;
                             <button className="toggle-form font-medium text-orange-500 hover:text-orange-400" onClick={Toggleit}>
                                 create a new account
                             </button>
-                        </p>
+                        </p> */}
                     </div> : <div className="text-center">
                         <h2 className="mt-6 text-3xl font-extrabold text-white">
                             Sign Up to your account
@@ -151,17 +244,18 @@ const Login = () => {
                             <div className="text-right">
                                 <button
                                     type="button"
-                                    className={phone?.length === 10 ? 'text-orange-500 hover:text-orange-400' : 'text-gray-400 cursor-not-allowed'}
-                                // Function to send OTP
+                                    onClick={loginsendOtp} // <== ADD THIS
+                                    className={phone2?.length === 10 ? 'text-orange-500 hover:text-orange-400' : 'text-gray-400 cursor-not-allowed'}
                                 >
                                     Send OTP
                                 </button>
+
                             </div>
                             <div>
                                 <label htmlFor="otp-register" className="sr-only">Enter OTP</label>
                                 <input
-                                    disabled={true}
-                                    {...signupRegister("otp")}
+                                    disabled={!verifyId2}
+                                    {...loginRegister("otp")}
                                     id="otp-register"
                                     name="otp"
                                     type="text"
@@ -172,22 +266,11 @@ const Login = () => {
                                 {loginErrors.otp && <p className="text-white text-sm md:text-base opacity-80 px-2">{loginErrors.otp.message}</p>}
                             </div>
 
+
+
                         </div>
 
-                        {/* <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded bg-neutral-700" />
-                                <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-400">
-                                    Remember me
-                                </label>
-                            </div>
-
-                            <div className="text-sm">
-                                <a href="#" className="font-medium text-orange-500 hover:text-orange-400">
-                                    Forgot your password?
-                                </a>
-                            </div>
-                        </div> */}
+                        
 
                         <div>
                             <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
@@ -195,7 +278,7 @@ const Login = () => {
                             </button>
                         </div>
                     </form>
-
+{/* 
                     <form id="registerForm" className={`${isToggle ? 'block' : 'hidden'} mt-8 space-y-6 `} onSubmit={handleSignup(onSubmit)}>
                         <div className="rounded-md shadow-sm space-y-4">
                             <div>
@@ -233,9 +316,18 @@ const Login = () => {
                                 />
                                 {signupErrors.otp && <p className="text-white text-sm md:text-base opacity-80 px-2">{signupErrors.otp.message}</p>}
                             </div>
+                            {/* <div className="text-right">
+                                <button
+                                    type="button"
+                                    className="text-orange-500 hover:text-orange-400"
+                                    onClick={verifyOtp} // ✅ Call OTP verification function
+                                >
+                                    Verify OTP
+                                </button>
+                            </div> */}
 
 
-                            <div>
+                            {/* <div>
                                 <label htmlFor="role" className="sr-only">Select Role</label>
                                 <select
                                     {...signupRegister('role')}
@@ -245,9 +337,9 @@ const Login = () => {
                                     defaultValue=""
                                     className="appearance-none rounded-lg w-full px-3 py-2 border border-neutral-600 bg-neutral-700 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                                 >
-                                    <option value="" disabled>Select your role</option>
-                                    <option value="user">User</option>
-                                    <option value="creator">Recruiter or Advertiser</option></select>
+                                    <option value="creator" disabled>Select your role</option>
+                      
+                                    <option  value="creator">Recruiter or Advertiser</option></select>
                                 {signupErrors.role && <p className="text-white text-sm md:text-base opacity-80 px-2">{signupErrors.role.message}</p>}
                             </div>
 
@@ -260,11 +352,11 @@ const Login = () => {
                                 Create Account
                             </button>
                         </div>
-                    </form>
+                    </form> */}
                 </div>
             </section>
         </div>
     )
 }
 
-export default Login;
+export default Login; 

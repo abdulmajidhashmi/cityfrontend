@@ -1,10 +1,9 @@
 import Header from '../components/Header';
-import Searchsection from '../components/Searchsection';
+
 import Jobs from '../components/Jobs';
-import Rental from '../components/Rental';
-import Category from  '../components/Category';
+
+
 import Steps from '../components/Steps';
-import Mobileapp from '../components/Mobileapp';
 import Footer from '../components/Footer';
 import Mainsearch from '../components/MainHeader';
 export default function Home() {
@@ -29,12 +28,12 @@ export default function Home() {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={true.toString()} />
     <Header />
-    <Searchsection />
-    <Jobs />
-    <Rental />
-    <Category />
     <Steps />
-    <Mobileapp />
+    <Jobs />
+
+
+ 
+ 
     <Footer />
   </>
   );

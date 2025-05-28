@@ -3,16 +3,18 @@ export const runtime = 'edge';
 
 export async function POST(req) {
     try {
-        const data = await req.json();
+        const actualdata = await req.json();
+        
 
         const response = await fetch(`${process.env.BASE_URL}/user/login`, {
             method: "POST",
-            body: JSON.stringify(data),
+            body: JSON.stringify({ phone: actualdata }) ,
             headers: { "Content-Type": "application/json" },
             credentials: "include",
         });
 
         const result = await response.json();
+        console.log(result)
 
         const setCookieHeader = response.headers.get("set-cookie");
 
