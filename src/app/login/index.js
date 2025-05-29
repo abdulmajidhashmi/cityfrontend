@@ -11,8 +11,8 @@ const Login = () => {
 
     const router = useRouter();
 
-    const { watch:loginwatch,register: loginRegister, handleSubmit: handleLogin, formState: { errors: loginErrors } } = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
-    const { watch:signupwatch, register: signupRegister, handleSubmit: handleSignup, formState: { errors: signupErrors } } = useForm({ resolver: zodResolver(signupSchema), mode: 'all' });
+    const { watch: loginwatch, register: loginRegister, handleSubmit: handleLogin, formState: { errors: loginErrors } } = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
+    const { watch: signupwatch, register: signupRegister, handleSubmit: handleSignup, formState: { errors: signupErrors } } = useForm({ resolver: zodResolver(signupSchema), mode: 'all' });
     const [isToggle, setIsToggle] = useState(false);
     const [verifyId, setVerifyId] = useState('');
     const [verifyId2, setVerifyId2] = useState('');
@@ -20,13 +20,15 @@ const Login = () => {
     const phone = signupwatch('number');
     const otp = signupwatch('otp');
     const otp2 = loginwatch('otp');
-    const [num, setNum] = useState('');
+    const [otpSecure, setotpSecure] = useState(true);
+    const [otpSeconds, setotpSeconds] = useState(30);
+
+
     function Toggleit() {
 
         setIsToggle(() => !isToggle);
     }
     const loggedIn = async (data) => {
-
 
 
         if (!verifyId2 || !otp2) {
@@ -53,27 +55,27 @@ const Login = () => {
             console.log(response)
 
             const data = await response.json();
-console.log(data);
+            console.log(data);
             if (data.success) {
                 alert("OTP Verified Successfully!");
             } else {
                 alert(data.message || "Verification failed. Please try again.");
             }
-            
-           const temp= data.user.phone_number;
-           const actualdata =temp
+
+            const temp = data.user.phone_number;
+            const actualdata = temp
             const response2 = await fetch('/api/login', {
                 method: "POST",
-                body:JSON.stringify(phone2),
+                body: JSON.stringify(phone2),
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
             });
             const result = await response2.json();
             console.log(result)
             if (result?.result?.success === true) {
-             
-                    router.push('/post-ad');
-               
+
+                router.push('/post-ad');
+
             }
             console.log(result.result.success);
         } catch (error) {
@@ -134,28 +136,29 @@ console.log(data);
             alert("Enter a valid 10-digit phone number.");
             return;
         }
-    
+
         if (resendDisabled) {
             alert("Please wait before requesting a new OTP.");
             return;
         }
-    
+
         setResendDisabled(true);
         setTimeout(() => setResendDisabled(false), 30000);
-    
+
         const formattedPhone = `+91${phone}`;
-    
+
         try {
             const appVerifier = window.recaptchaVerifier;
             const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
             setVerifyId(confirmationResult.verificationId);
+            setOTPtimer(true)
             alert("OTP sent!");
         } catch (error) {
             console.error("OTP error:", error.code, error.message);
             alert(`Error sending OTP: ${error.message}`);
         }
     };
-    
+
     useEffect(() => {
         if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
@@ -166,31 +169,59 @@ console.log(data);
             });
         }
     }, []);
-    
+
+
 
     const loginsendOtp = async () => {
+        // Reset timer to 30 seconds before starting
+
+     
+
+            function calling() {
+  const otpInterval = setInterval(() => {
+    setotpSeconds((prev) => {
+      if (prev <= 1) {
+        setotpSecure(true);
+        clearInterval(otpInterval); // ✅ stop the timer
+        return 30;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+
+}
+calling();
+
+
         if (!phone2 || phone2.length !== 10) {
             alert("Enter a valid 10-digit phone number.");
             return;
         }
-    
+
         if (resendDisabled) {
             alert("Please wait before requesting a new OTP.");
             return;
         }
-    
+
         setResendDisabled(true);
         setTimeout(() => setResendDisabled(false), 30000);
-    
+
         const formattedPhone = `+91${phone2}`;
-    
+
+
         try {
+            setotpSecure(false)
+
             const appVerifier = window.recaptchaVerifier;
             const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-            setVerifyId2(confirmationResult.verificationId); 
+            setVerifyId2(confirmationResult.verificationId);
             alert("OTP sent!");
-    
+            
+
+
         } catch (error) {
+     
             console.error("OTP error:", error.code, error.message);
             alert(`Error sending OTP: ${error.message}`);
         }
@@ -204,7 +235,7 @@ console.log(data);
     return (
 
         <div id="root">
-        <div id="recaptcha-container"></div>
+            <div id="recaptcha-container"></div>
             <section id="auth" className="bg-neutral-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
 
 
@@ -242,13 +273,20 @@ console.log(data);
                                 {loginErrors.number && <p className="text-white text-sm md:text-base opacity-80 px-2">{loginErrors.number.message}</p>}
                             </div>
                             <div className="text-right">
-                                <button
+
+
+
+
+
+                                {otpSecure ? <button
                                     type="button"
                                     onClick={loginsendOtp} // <== ADD THIS
                                     className={phone2?.length === 10 ? 'text-orange-500 hover:text-orange-400' : 'text-gray-400 cursor-not-allowed'}
                                 >
                                     Send OTP
                                 </button>
+
+                                    : <div className="text-gray-400">resend OTP in {otpSeconds} sec</div>}
 
                             </div>
                             <div>
@@ -270,7 +308,7 @@ console.log(data);
 
                         </div>
 
-                        
+
 
                         <div>
                             <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
@@ -278,7 +316,7 @@ console.log(data);
                             </button>
                         </div>
                     </form>
-{/* 
+                    {/* 
                     <form id="registerForm" className={`${isToggle ? 'block' : 'hidden'} mt-8 space-y-6 `} onSubmit={handleSignup(onSubmit)}>
                         <div className="rounded-md shadow-sm space-y-4">
                             <div>
@@ -327,7 +365,7 @@ console.log(data);
                             </div> */}
 
 
-                            {/* <div>
+                    {/* <div>
                                 <label htmlFor="role" className="sr-only">Select Role</label>
                                 <select
                                     {...signupRegister('role')}
