@@ -57,12 +57,12 @@ const Login = () => {
             const data = await response.json();
             console.log(data);
             if (data.success) {
-                alert("OTP Verified Successfully!");
+                //later we can write
             } else {
                 alert(data.message || "Verification failed. Please try again.");
             }
 
-            const temp = data.user.phone_number;
+            const temp = data.user.phone_number;``
             const actualdata = temp
             const response2 = await fetch('/api/login', {
                 method: "POST",

@@ -14,13 +14,14 @@ const Postad = () => {
 
         <>
         <Hero/>
+         <Step/>
         <Form/>
-        <Powerfulfeautures/>
-        <Step/>
-        <Pricing/>
-        <Testimonials/>
+        {/* <Powerfulfeautures/> */}
+       
+        {/* <Pricing/> */}
+        {/* <Testimonials/> */}
         <Faq/>
-        <Getintouch/>
+        {/* <Getintouch/> */}
         </>
     )
 }
