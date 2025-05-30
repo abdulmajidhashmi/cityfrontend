@@ -219,7 +219,7 @@ const Form = () => {
                 Submit Listing
               </button>
             </form>
-</div>\
+</div>
 </div>
             </div>
           </section>

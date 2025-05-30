@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { signupSchema, loginSchema } from './userSchema';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInWithCredential, PhoneAuthProvider, getAuth } from "firebase/auth";
+import toast, { Toaster } from 'react-hot-toast';
 
 import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "../../../firebase";
 const Login = () => {
@@ -39,6 +40,7 @@ const Login = () => {
         console.log("Entered OTP:", otp);
 
         try {
+           const toastLoggedin =  toast.loading('Logging in...');
             const credential = PhoneAuthProvider.credential(verifyId2, otp2);
             const userCredential = await signInWithCredential(auth, credential);
             const idToken = await userCredential.user.getIdToken();
@@ -73,11 +75,14 @@ const Login = () => {
             const result = await response2.json();
             console.log(result)
             if (result?.result?.success === true) {
-
+          
                 router.push('/post-ad');
+                    toast.dismiss(toastLoggedin);
 
             }
             console.log(result.result.success);
+
+
         } catch (error) {
             console.error("Error verifying OTP:", error);
             alert(error.message || "Something went wrong. Please try again.");
@@ -148,11 +153,13 @@ const Login = () => {
         const formattedPhone = `+91${phone}`;
 
         try {
+         
             const appVerifier = window.recaptchaVerifier;
             const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
             setVerifyId(confirmationResult.verificationId);
             setOTPtimer(true)
-            alert("OTP sent!");
+           
+            toast('OTP sent!')
         } catch (error) {
             console.error("OTP error:", error.code, error.message);
             alert(`Error sending OTP: ${error.message}`);
@@ -211,12 +218,15 @@ calling();
 
 
         try {
+              const toastloading = toast.loading('OTP sending...');
             setotpSecure(false)
 
             const appVerifier = window.recaptchaVerifier;
             const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
             setVerifyId2(confirmationResult.verificationId);
-            alert("OTP sent!");
+
+            toast.dismiss(toastloading);
+              toast('OTP sent!')
             
 
 
@@ -234,7 +244,9 @@ calling();
 
     return (
 
+        <>  <Toaster />
         <div id="root">
+           
             <div id="recaptcha-container"></div>
             <section id="auth" className="bg-neutral-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
 
@@ -393,7 +405,7 @@ calling();
                     </form> */}
                 </div>
             </section>
-        </div>
+        </div></>
     )
 }
 

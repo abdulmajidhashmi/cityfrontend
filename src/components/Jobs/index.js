@@ -143,8 +143,8 @@ return(
                                 <div className="flex justify-between items-center">
                                     <span className="text-[#FF6B35] font-bold">₹{item.minSalary} - ₹{item.maxSalary}</span>
                                     <button
-                                        className="bg-[#FF6B35] text-white px-4 py-2 rounded-lg hover:bg-[#ff8255] transition-colors">Apply
-                                        Now</button>
+                                        className="bg-[#FF6B35] text-white px-4 py-2 rounded-lg hover:bg-[#ff8255] transition-colors">View details
+                                        </button>
                                 </div>
                             </div>)
 
