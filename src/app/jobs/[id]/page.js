@@ -8,11 +8,21 @@ const Viewjob = () => {
     const param = useParams();
     const id = param.id;
     const [jobData, setJobData] = useState([]);
+    const [jobrequirement, setJobRequirement] = useState(null);
 
     useEffect(() => {
 
         callapi();
+
+
+
+
+
+
+
     }, [])
+
+
 
     const callapi = async () => {
         try {
@@ -26,6 +36,9 @@ const Viewjob = () => {
             const result = await data.json();
             setJobData(result.data);
             console.log(result.data);
+            const listingdata = result.data.requirement.split(/[,.]/).map(item => item.trim()).filter(item => item);
+            setJobRequirement(listingdata)
+            console.log(listingdata)
 
         } catch (err) {
             console.log(err);
@@ -228,10 +241,14 @@ const Viewjob = () => {
 
                                 <h3 className="text-xl font-semibold text-neutral-900 mt-8 mb-4">Requirements:</h3>
                                 <ul className="list-disc pl-6 space-y-3">
-                                    <li>{jobData.requirement}</li>
-                                    
+                                    {jobrequirement?jobrequirement.map((req, index) => (
+                                        <li key={index}>{req}</li>
+                                    )):null}
                                 </ul>
-{/* 
+
+
+
+                                {/* 
                                 <h3 className="text-xl font-semibold text-neutral-900 mt-8 mb-4">Benefits:</h3>
                                 <ul className="list-disc pl-6 space-y-3">
                                     <li>Competitive salary package with annual bonuses</li>

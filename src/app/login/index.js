@@ -6,8 +6,10 @@ import { signupSchema, loginSchema } from './userSchema';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInWithCredential, PhoneAuthProvider, getAuth } from "firebase/auth";
 import toast, { Toaster } from 'react-hot-toast';
+import Cookies from 'js-cookie';
 
 import { auth, RecaptchaVerifier, signInWithPhoneNumber } from "../../../firebase";
+
 const Login = () => {
 
     const router = useRouter();
@@ -73,7 +75,13 @@ const Login = () => {
                 credentials: "include"
             });
             const result = await response2.json();
-            console.log(result)
+            console.log("------------------------",result)
+           Cookies.set('authTokenSafety', 'your_token_value_here', {
+  expires: 31, // 1 day
+  secure: false, // set true in production (HTTPS)
+  sameSite: 'Lax', // or 'Strict' or 'None' if needed
+  path: '/', // optional, sets cookie for entire site
+});
             if (result?.result?.success === true) {
           
                 router.push('/post-ad');
@@ -167,6 +175,12 @@ const Login = () => {
     };
 
     useEffect(() => {
+
+
+    const token = Cookies.get('authToken');
+
+            console.log(token)
+    
         if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
                 size: "invisible",

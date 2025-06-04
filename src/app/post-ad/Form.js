@@ -1,12 +1,15 @@
 'use client';
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from 'react-hot-toast';
 const Form = () => {
   const { register, handleSubmit } = useForm();
   const [postType, setPostType] = useState('');
 
   const onSubmit = async (data) => {
     try {
+
+     
       const response = await fetch('/api/jobpost', {
         method: "POST",
         body: JSON.stringify(data),
@@ -16,6 +19,8 @@ const Form = () => {
       const result = await response.json();
 
       console.log(result);
+       toast.dismiss("Posting")
+      toast.success("Ad posted")
     } catch (err) {
       console.error(err);
     }
@@ -172,13 +177,13 @@ const Form = () => {
               </div> */}
 
 
-              <div>
+              {/* <div>
                 <label className="block text-neutral-700 font-medium mb-2" htmlFor="applicationInstructions">How to
                   Contact</label>
                 <textarea id="applicationInstructions" rows="2" {...register("contact")}
                   className="w-full px-4 py-3 rounded-lg border border-neutral-300 focus:border-[#2E4053] focus:ring-2 focus:ring-[#2E4053] focus:ring-opacity-20 transition-colors"
                   placeholder="Provide application instructions..."></textarea>
-              </div>
+              </div> */}
               {/* 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>

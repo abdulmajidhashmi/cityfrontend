@@ -73,9 +73,11 @@ const jobColors = {
     "Part time": "bg-purple-100 text-purple-600",
 };
     return (
-
+<>
+ 
 
         <div id="root">
+            
             <section id="featured-jobs" className="py-20 bg-white">
                 <div className="container mx-auto px-4">
 
@@ -160,7 +162,7 @@ return(
                 </div>
             </section>
         </div>
-
+</>
     )
 }
 

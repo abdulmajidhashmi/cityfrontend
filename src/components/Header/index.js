@@ -1,9 +1,11 @@
 'use client'
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import Cookies from 'js-cookie';
 
 const Header = () => {
     const [isopen, setIsopen] = useState(true);
+     const [loginShow, setLoginShow] = useState(false);
     const menuRef = useRef(null);
     const buttonRef = useRef(null);
     const navToggle = () => setIsopen(!isopen);
@@ -15,8 +17,19 @@ const Header = () => {
             }
         }
         document.addEventListener("click", handleClickOutside);
+
         return () => document.removeEventListener("click", handleClickOutside);
     }, [])
+
+      useEffect(() => {
+        const token = Cookies.get('authToken');
+        setLoginShow(!token); // If token exists, loginShow = false (show Logout)
+    }, []);
+
+    const logOut = () => {
+        Cookies.remove('authToken');
+        setLoginShow(true); // Show Login button
+    };
 
     return (
         <div id="root">
@@ -31,11 +44,16 @@ const Header = () => {
                             <div className="hidden md:flex space-x-6">
                                 <Link href="/" className="text-white hover:text-[#FF6B35] transition-colors">Home</Link>
                                 <Link href="/jobs" className="text-white hover:text-[#FF6B35] transition-colors">Jobs</Link>
-                                <Link href="/classifieds" className="text-white hover:text-[#FF6B35] transition-colors">Classifieds</Link>
+                                {/* <Link href="/classifieds" className="text-white hover:text-[#FF6B35] transition-colors">Classifieds</Link> */}
                                 <Link href="/post-ad" className="text-white hover:text-[#FF6B35] transition-colors">Post Ad</Link>
-                                <Link href="/how-it-works" className="text-white hover:text-[#FF6B35] transition-colors">How It
-                                    Works</Link>
-                                <Link href="/login" className="text-white hover:text-[#FF6B35] transition-colors">Login</Link>
+                                {/* <Link href="/how-it-works" className="text-white hover:text-[#FF6B35] transition-colors">How It
+                                    Works</Link> */}
+                           {loginShow ? (
+                                    <Link href="/login" className="text-white hover:text-[#FF6B35] transition-colors">Login</Link>
+                                ) : (
+                                    <div className="text-white hover:text-[#FF6B35] transition-colors cursor-pointer" onClick={logOut}>Logout</div>
+                                )}
+                              
                             </div>
 
 
@@ -53,11 +71,11 @@ const Header = () => {
                         <div className="px-4 py-2 space-y-3">
                             <Link href="/" className="block text-white hover:text-[#FF6B35] transition-colors">Home</Link>
                             <Link href="/jobs" className="block text-white hover:text-[#FF6B35] transition-colors">Jobs</Link>
-                            <Link href="/classifieds"
-                                className="block text-white hover:text-[#FF6B35] transition-colors">Classifieds</Link>
+                            {/* <Link href="/classifieds"
+                                className="block text-white hover:text-[#FF6B35] transition-colors">Classifieds</Link> */}
                             <Link href="/post-ad" className="block text-white hover:text-[#FF6B35] transition-colors">Post Ad</Link>
-                            <Link href="/how-it-works" className="block text-white hover:text-[#FF6B35] transition-colors">How It
-                                Works</Link>
+                            {/* <Link href="/how-it-works" className="block text-white hover:text-[#FF6B35] transition-colors">How It
+                                Works</Link> */}
                             <Link href="/login" className="block text-white hover:text-[#FF6B35] transition-colors">Login</Link>
                         </div>
                     </div>
