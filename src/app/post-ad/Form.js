@@ -210,14 +210,14 @@ const Form = () => {
                 </div>
               </div> */}
 
-
+{/* 
               <div className="flex items-start">
                 <input type="checkbox" id="equalOpportunity" className="mt-1 mr-2" />
                 <label htmlFor="equalOpportunity" className="text-sm text-neutral-600">
                   This organization is an equal opportunity employer. We celebrate diversity and are committed to
                   creating an inclusive environment for all employees.
                 </label>
-              </div>
+              </div> */}
 
               <button type="submit"
                 className="w-full bg-[#2E4053] text-white font-semibold py-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:bg-[#3d5269]">
