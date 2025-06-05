@@ -69,6 +69,7 @@ const Viewjob = () => {
         }
         return "just now";
     }
+
     return (
         <>
             <div id="root">
